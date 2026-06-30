@@ -46,8 +46,9 @@ screenshot. Do not guess at look/feel blind.
 ## Architecture
 
 - **Autoloads (singletons), in load order:** `GameState`, `Inventory`,
-  `SaveSystem`, `SceneManager`, `AudioDirector`. Access by global name
-  (e.g. `GameState.set_flag(...)`) or path `/root/GameState`.
+  `SaveSystem`, `SceneManager`, `AudioDirector`, `GlobalInput`. Access by global
+  name (e.g. `GameState.set_flag(...)`) or path `/root/GameState`. `GlobalInput`
+  is the app-level input singleton (Esc-to-quit; seat for the Phase 5 pause menu).
 - **World state lives in `GameState.flags` (Dictionary).** Never store
   progression on individual nodes. This is what makes saves and tests work.
 - **Data-driven.** Items, dialogue, NPCs, rooms are DATA under `data/`, consumed
@@ -64,7 +65,8 @@ screenshot. Do not guess at look/feel blind.
   `Interactor` raycast focuses whatever is under the crosshair and dispatches to
   it. Door, pickup, and NPC all follow this.
 - **Input & physics layers.** Actions: `move_forward/back/left/right`, `interact`
-  (E — also advances dialogue), `crouch` (Ctrl). Layers: 1 = world, 2 =
+  (E — also advances dialogue), `crouch` (Ctrl), `quit` (Esc — quits the game,
+  handled globally by `GlobalInput`). Layers: 1 = world, 2 =
   interactable, 3 = player, 4 = guard (LOS rays mask world only, so they ignore
   the player and guard).
 

@@ -197,3 +197,18 @@ func test_pickup_adds_item() -> void:
 	add_child(p)
 	p.interact(null)
 	_ok(Inventory.has("rusted_key"), "pickup adds its item to the inventory")
+
+
+# --- Global input: Esc-to-quit -----------------------------------------------
+
+
+func test_quit_action_bound_to_escape() -> void:
+	_ok(InputMap.has_action("quit"), "a 'quit' input action is defined")
+	if not InputMap.has_action("quit"):
+		return
+	var bound_to_escape := false
+	for event: InputEvent in InputMap.action_get_events("quit"):
+		var key := event as InputEventKey
+		if key != null and key.physical_keycode == KEY_ESCAPE:
+			bound_to_escape = true
+	_ok(bound_to_escape, "the 'quit' action is bound to the Esc key")

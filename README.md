@@ -32,7 +32,7 @@ authoring real "Ceremony" content on top of these systems.
    - `make test` — runs the unit tests headless.
    - `make run` — launches the greybox slice (human only; mouse-look needs a
      window). **Controls:** WASD move, mouse look, **E** interact / talk / open,
-     **Ctrl** crouch.
+     **Ctrl** crouch, **Esc** quit.
 
    If `godot` isn't on your PATH, pass the binary:
    `make smoke GODOT=/path/to/Godot_v4.x`
