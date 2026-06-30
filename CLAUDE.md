@@ -51,8 +51,14 @@ screenshot. Do not guess at look/feel blind.
   is the app-level input singleton (Esc-to-quit; seat for the Phase 5 pause menu).
 - **World state lives in `GameState.flags` (Dictionary).** Never store
   progression on individual nodes. This is what makes saves and tests work.
-- **Data-driven.** Items, dialogue, NPCs, rooms are DATA under `data/`, consumed
-  by generic scenes. Adding content = adding data, not editing scene trees.
+- **Data-driven.** Items, dialogue, NPCs, rooms, textures are DATA under `data/`,
+  consumed by generic scenes. Adding content = adding data, not editing scene trees.
+- **PSX surface textures.** `TextureCatalog` (`scripts/levels/texture_catalog.gd`)
+  loads `data/textures/textures.json` — a flat catalog keyed by semantic id,
+  parallel to `ItemCatalog` — and `make_material()` builds a `StandardMaterial3D`
+  with nearest-neighbour filtering (and optional normal maps). That factory is the
+  one place the PSX no-bilinear look is enforced. `room_builder` applies textures
+  to the CSG shell by id via an optional `surfaces` block in room JSON.
 - **Save format** is JSON in `user://saves/slot_N.json` (state + inventory +
   player transform). Keep it readable.
 - **Phase 1 systems split brain/body.** Each system has a pure, headless-testable
@@ -98,10 +104,29 @@ screenshot. Do not guess at look/feel blind.
   UI is a thin layer over it. **This runner is a stopgap** — Phase 2 replaces it
   with the Dialogue Manager addon (install into `addons/`, `.dialogue` files in
   `data/dialogue/`, gate on flags). Until that addon is in, do not invent its files.
+- **New texture (PSX surfaces):** drop a low-res PNG in
+  `assets/textures/<category>/` (e.g. `surfaces/`) — that file is a binary, so it
+  falls under the "do not edit binaries under `assets/`" boundary. Add an entry to
+  `data/textures/textures.json` keyed by a semantic id: `{path, category, tags[],
+  description, tiling?:[u,v], roughness?, normal?, normal_scale?}`. Reference it by
+  **id**, never by path — from a room's `surfaces` block or any
+  `TextureCatalog.make_material(id, catalog)` call. `tags` + `description` exist so
+  a session can pick the right texture *without seeing it*; write them for that
+  reader. After adding a PNG, run the import pass
+  (`godot --headless --path . --editor --quit`) so Godot imports it;
+  `test_texture_catalog_paths_exist` fails `make test` on any dangling `path`.
+  **Normal maps** (optional, for tactile relief on the flat CSG): point `normal`
+  at a `*_n.png` and set `normal_scale`, then run
+  `godot --headless --path . --script res://tools/godot/set_normalmap_imports.gd`
+  and an import pass — this flags them as linear normal data (Godot's auto-detect
+  doesn't fire for runtime-built materials). Relief only shows under directional /
+  point light (the sun, the player's lamp), not flat ambient.
 - **New room (Phase 1):** add `data/rooms/<id>.json` and load it with a
   `room_builder` Node3D (see `scenes/levels/greybox.tscn`). Schema: `{id, ambient,
-  size:[x,y,z], spawns:{name:{pos,yaw}}, entities:[...]}`. Entity types:
-  `pickup{item}`, `door{requires_item, opened_flag}`, `npc{name, dialogue}`,
+  size:[x,y,z], surfaces?:{floor, ceiling, walls}, spawns:{name:{pos,yaw}},
+  entities:[...]}`. `surfaces` maps a role to a texture id (see *New texture*); an
+  absent role leaves that surface untextured (the grey greybox default). Entity
+  types: `pickup{item}`, `door{requires_item, opened_flag}`, `npc{name, dialogue}`,
   `guard{patrol:[[x,y,z]...], fov, range, speed}`, each with `pos`/`yaw`. The
   builder makes the CSG shell and instances entity scenes — new rooms are new
   JSON, not new scene trees. (NPCs are inline in the room JSON for now; promote to
@@ -184,7 +209,10 @@ Run `gdformat scripts tests` to normalise indentation to tabs.
   pickup, item-gated locked door, a custom JSON dialogue runner + UI, and a
   patrolling guard with cone + line-of-sight detection. `make smoke` drives the
   whole loop headless. Look/feel still needs in-editor tuning (`make run`).
-- **Phase 2 (next):** Stage 1 "Ceremony" content.
+- **Phase 2 (next):** Stage 1 "Ceremony" content. Opens with the PSX texture
+  catalogue (`data/textures/textures.json` + `TextureCatalog`, see *New texture*)
+  so Ceremony rooms can be textured by id; the catalogue ships empty and fills as
+  real PNGs land.
 - **Phase 3:** Stage 2 "Cracks" (biggest content phase).
 - **Phase 4:** Stage 3 "Escape" + endings.
 - **Phase 5:** audio, save/load hardening, menus, polish.

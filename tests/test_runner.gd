@@ -212,3 +212,51 @@ func test_quit_action_bound_to_escape() -> void:
 		if key != null and key.physical_keycode == KEY_ESCAPE:
 			bound_to_escape = true
 	_ok(bound_to_escape, "the 'quit' action is bound to the Esc key")
+
+
+# --- TextureCatalog (PSX surfaces) -------------------------------------------
+
+
+func test_texture_catalog_load_returns_dict() -> void:
+	var catalog := TextureCatalog.load_all()
+	_eq(typeof(catalog), TYPE_DICTIONARY, "load_all returns a Dictionary")
+
+
+func test_texture_make_material_is_psx_nearest() -> void:
+	var catalog := {"stub": {"tiling": [3.0, 2.0], "roughness": 0.5}}
+	var mat := TextureCatalog.make_material("stub", catalog)
+	_ok(mat != null, "make_material returns a material")
+	_eq(
+		mat.texture_filter,
+		BaseMaterial3D.TEXTURE_FILTER_NEAREST,
+		"PSX look uses nearest-neighbour filtering",
+	)
+	_eq(mat.uv1_scale, Vector3(3.0, 2.0, 1.0), "tiling maps to uv1_scale")
+
+
+func test_texture_make_material_unknown_id_is_safe() -> void:
+	var mat := TextureCatalog.make_material("does_not_exist", {})
+	_ok(mat != null, "unknown id still yields a material")
+	_ok(mat.albedo_texture == null, "unknown id leaves the material untextured")
+
+
+func test_texture_make_material_normal_optional() -> void:
+	# No "normal" key -> normal mapping stays off.
+	var plain := TextureCatalog.make_material("stub", {"stub": {}})
+	_ok(not plain.normal_enabled, "normal mapping is off when no normal is declared")
+	# A real normal map from the catalog -> normal mapping on, scale applied.
+	var catalog := TextureCatalog.load_all()
+	if catalog.has("cinder_block_wall") and catalog["cinder_block_wall"].has("normal"):
+		var mat := TextureCatalog.make_material("cinder_block_wall", catalog)
+		_ok(mat.normal_enabled, "declaring a normal turns normal mapping on")
+		_ok(mat.normal_texture != null, "the normal texture is loaded")
+
+
+func test_texture_catalog_paths_exist() -> void:
+	# The texture-side analog of the Blender validator: a typo'd or dangling path
+	# fails `make test` instead of silently rendering nothing in-engine.
+	var catalog := TextureCatalog.load_all()
+	for id: String in catalog:
+		var path: String = catalog[id].get("path", "")
+		_ok(path != "", "texture '%s' declares a path" % id)
+		_ok(ResourceLoader.exists(path), "texture '%s' path resolves: %s" % [id, path])
