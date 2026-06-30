@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/interaction_prompt.gd" id="1_0mwgc"]
+
+[node name="HUD" type="CanvasLayer" unique_id=1576350908]
+script = ExtResource("1_0mwgc")
+
+[node name="Label" type="Label" parent="." unique_id=1770557661]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -90.0
+offset_bottom = -50.0
+horizontal_alignment = 1
+vertical_alignment = 1

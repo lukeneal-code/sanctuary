@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interaction/npc_talker.gd" id="1_iify0"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_4kvco"]
+radius = 0.3
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_n61dp"]
+radius = 0.4
+height = 1.8
+
+[node name="Npc" type="Area3D" unique_id=777648565]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_iify0")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=140413648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_4kvco")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1118153976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_n61dp")

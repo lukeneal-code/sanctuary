@@ -1,0 +1,26 @@
+{
+    "rusted_key": {
+        "display_name": "Rusted Key",
+        "description": "Heavy iron, pitted with age. It fits something old.",
+        "combines_with": [],
+        "combines_into": ""
+    },
+    "wire": {
+        "display_name": "Length of Wire",
+        "description": "Stripped copper, pried from a wall panel.",
+        "combines_with": ["battery"],
+        "combines_into": "shiv_light"
+    },
+    "battery": {
+        "display_name": "Dry Cell",
+        "description": "A fat little cell, the kind the compound runs on. Still holds a charge.",
+        "combines_with": ["wire"],
+        "combines_into": "shiv_light"
+    },
+    "shiv_light": {
+        "display_name": "Improvised Lamp",
+        "description": "Wire, a cell, and nerve. Just enough light to move by in the dark.",
+        "combines_with": [],
+        "combines_into": ""
+    }
+}

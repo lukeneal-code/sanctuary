@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/room_builder.gd" id="1_6dwg8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_g53na"]
+[ext_resource type="Script" path="res://scripts/ui/interaction_prompt.gd" id="3_q8h5g"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_ui.tscn" id="4_ghkgo"]
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_ui.gd" id="5_230bg"]
+
+[node name="Greybox" type="Node3D" unique_id=161054025]
+script = ExtResource("1_6dwg8")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1576350908 instance=ExtResource("2_g53na")]
+script = ExtResource("3_q8h5g")
+
+[node name="DialogueUI" type="CanvasLayer" parent="." unique_id=815905293 instance=ExtResource("4_ghkgo")]
+script = ExtResource("5_230bg")

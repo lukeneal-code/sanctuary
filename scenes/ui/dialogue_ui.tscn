@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_ui.gd" id="1_y3syv"]
+
+[node name="DialogueUI" type="CanvasLayer" unique_id=815905293]
+script = ExtResource("1_y3syv")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=2115373028]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -260.0
+offset_right = -40.0
+offset_bottom = -40.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=769949263]
+layout_mode = 2
+
+[node name="Speaker" type="Label" parent="Panel/VBox" unique_id=1809622440]
+layout_mode = 2
+
+[node name="Text" type="Label" parent="Panel/VBox" unique_id=1244336088]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Choices" type="VBoxContainer" parent="Panel/VBox" unique_id=176213828]
+layout_mode = 2

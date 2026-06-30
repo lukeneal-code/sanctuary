@@ -1,0 +1,39 @@
+{
+	"id": "guard_intro",
+	"start": "n_start",
+	"nodes": {
+		"n_start": {
+			"speaker": "Overseer",
+			"text": "You wear the wrong face for this hall.",
+			"set_flags": { "met_overseer": true },
+			"choices": [
+				{ "text": "I have clearance.", "goto": "n_bluff", "set_flags": { "chose_bluff": true } },
+				{ "text": "[Say nothing.]", "goto": "n_silent" }
+			]
+		},
+		"n_bluff": {
+			"speaker": "Overseer",
+			"text": "Then show it. ...You can't.",
+			"set_flags": { "overseer_suspicious": true },
+			"choices": [
+				{ "text": "(Step back.)", "goto": "" }
+			]
+		},
+		"n_silent": {
+			"speaker": "Overseer",
+			"text": "Silence. The honest answer, in a place like this.",
+			"choices": [
+				{ "text": "Ask about the locked door.", "goto": "n_hint", "require_flags": { "met_overseer": true } },
+				{ "text": "(Leave.)", "goto": "" }
+			]
+		},
+		"n_hint": {
+			"speaker": "Overseer",
+			"text": "The key was lost where the wiring runs. Look low, behind the panel.",
+			"set_flags": { "knows_key_location": true },
+			"choices": [
+				{ "text": "(Leave.)", "goto": "" }
+			]
+		}
+	}
+}

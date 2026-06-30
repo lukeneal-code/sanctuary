@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/stealth/guard.gd" id="1_d0fca"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_p6sh8"]
+radius = 0.3
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_c4p50"]
+radius = 0.3
+height = 1.8
+
+[node name="Guard" type="CharacterBody3D" unique_id=788981574]
+collision_layer = 8
+script = ExtResource("1_d0fca")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=2009476024]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_p6sh8")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1311284787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_c4p50")

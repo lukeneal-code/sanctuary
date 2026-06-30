@@ -1,0 +1,23 @@
+# Godot 4 generated cache & import artifacts
+.godot/
+
+# Export / build output
+/build/
+/export/
+export_presets.cfg
+
+# Mono/.NET (unused here, harmless to ignore)
+.mono/
+data_*/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# NOTE: per-asset *.import files ARE committed (Godot needs them). Only the
+# .godot/ cache is ignored — it regenerates on import.
+
+# Python bytecode (Blender tool scripts)
+__pycache__/
+*.pyc
