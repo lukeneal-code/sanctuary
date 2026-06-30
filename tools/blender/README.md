@@ -16,6 +16,11 @@ The thing that makes this work is the **validator**: it turns "is this asset
 correct?" into a text pass/fail with an exit code, which is the same kind of
 signal `make test` gives for code. Without it the agent would be flying blind.
 
+**Textures live on the Godot side.** Environment surfaces are textured by the
+PSX texture catalogue (`data/textures/textures.json` + `TextureCatalog`, see
+`CLAUDE.md`), not baked into `.glb` here — Blender materials stay flat-colour
+(`add_basic_material`) for now. Model-baked textures are a separate, later path.
+
 ## Layout
 
 ```

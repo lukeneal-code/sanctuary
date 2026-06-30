@@ -1,0 +1,29 @@
+{
+    "cinder_block_wall": {
+        "display_name": "Cinder Block Wall",
+        "path": "res://assets/textures/surfaces/cinder_block_wall.png",
+        "category": "surface",
+        "tags": ["wall", "cinder_block", "concrete", "grey", "institutional", "cell"],
+        "tiling": [1.0, 1.0],
+        "roughness": 0.95,
+        "description": "Bare grey cinder-block masonry. Cold, institutional, cell-block. Default wall for the compound interior."
+    },
+    "tile_floor_worn": {
+        "display_name": "Worn Tile Floor",
+        "path": "res://assets/textures/surfaces/tile_floor_worn.png",
+        "category": "surface",
+        "tags": ["floor", "tile", "institutional", "worn", "grime"],
+        "tiling": [1.0, 1.0],
+        "roughness": 0.9,
+        "description": "Grimy institutional floor tile, scuffed and stained. Reads as an old facility corridor or holding room."
+    },
+    "concrete_ceiling": {
+        "display_name": "Concrete Ceiling",
+        "path": "res://assets/textures/surfaces/concrete_ceiling.png",
+        "category": "surface",
+        "tags": ["ceiling", "concrete", "grey", "industrial"],
+        "tiling": [1.0, 1.0],
+        "roughness": 1.0,
+        "description": "Flat poured-concrete ceiling, dim and oppressive. Pairs with the cinder-block walls."
+    }
+}

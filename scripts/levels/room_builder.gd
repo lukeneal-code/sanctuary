@@ -22,13 +22,15 @@ var _door: Door = null
 var _pickup: Pickup = null
 var _npc: NpcTalker = null
 var _guard: Guard = null
+var _textures: Dictionary = {}
 
 
 func _ready() -> void:
 	var data := _load_room(room_id)
 	if data.is_empty():
 		return
-	_build_shell(data.get("size", [12, 4, 12]))
+	_textures = TextureCatalog.load_all()
+	_build_shell(data.get("size", [12, 4, 12]), data.get("surfaces", {}))
 	_build_lighting(data.get("light", {}))
 	_spawn_player(data.get("spawns", {}))
 	_spawn_entities(data.get("entities", []))
@@ -71,22 +73,35 @@ func _load_room(id: String) -> Dictionary:
 	return parsed
 
 
-func _build_shell(size_arr: Array) -> void:
+## Surfaces are optional: an absent role leaves that CSG box untextured (the grey
+## greybox default), so rooms without a "surfaces" block render exactly as before.
+func _build_shell(size_arr: Array, surfaces: Dictionary) -> void:
 	var w: float = size_arr[0]
 	var h: float = size_arr[1]
 	var d: float = size_arr[2]
-	_add_box(Vector3(w, 0.2, d), Vector3(0, -0.1, 0), "Floor")
-	_add_box(Vector3(w, 0.2, d), Vector3(0, h, 0), "Ceiling")
-	_add_box(Vector3(0.2, h, d), Vector3(w / 2.0, h / 2.0, 0), "WallEast")
-	_add_box(Vector3(0.2, h, d), Vector3(-w / 2.0, h / 2.0, 0), "WallWest")
-	_add_box(Vector3(w, h, 0.2), Vector3(0, h / 2.0, d / 2.0), "WallSouth")
+	var floor_tex: String = surfaces.get("floor", "")
+	var ceiling_tex: String = surfaces.get("ceiling", "")
+	var wall_tex: String = surfaces.get("walls", "")
+	_add_box(Vector3(w, 0.2, d), Vector3(0, -0.1, 0), "Floor", floor_tex)
+	_add_box(Vector3(w, 0.2, d), Vector3(0, h, 0), "Ceiling", ceiling_tex)
+	_add_box(Vector3(0.2, h, d), Vector3(w / 2.0, h / 2.0, 0), "WallEast", wall_tex)
+	_add_box(Vector3(0.2, h, d), Vector3(-w / 2.0, h / 2.0, 0), "WallWest", wall_tex)
+	_add_box(Vector3(w, h, 0.2), Vector3(0, h / 2.0, d / 2.0), "WallSouth", wall_tex)
 	# North wall (-Z) has a doorway gap centered on x=0 where the exit door sits.
 	var gap := 1.8
 	var seg := (w - gap) / 2.0
 	_add_box(
-		Vector3(seg, h, 0.2), Vector3(-(gap / 2.0 + seg / 2.0), h / 2.0, -d / 2.0), "WallNorthL"
+		Vector3(seg, h, 0.2),
+		Vector3(-(gap / 2.0 + seg / 2.0), h / 2.0, -d / 2.0),
+		"WallNorthL",
+		wall_tex,
 	)
-	_add_box(Vector3(seg, h, 0.2), Vector3(gap / 2.0 + seg / 2.0, h / 2.0, -d / 2.0), "WallNorthR")
+	_add_box(
+		Vector3(seg, h, 0.2),
+		Vector3(gap / 2.0 + seg / 2.0, h / 2.0, -d / 2.0),
+		"WallNorthR",
+		wall_tex,
+	)
 
 
 ## Ambient environment + a single directional "sun" so the greybox is readable.
@@ -112,12 +127,14 @@ func _build_lighting(cfg: Dictionary) -> void:
 	add_child(sun)
 
 
-func _add_box(box_size: Vector3, pos: Vector3, node_name: String) -> void:
+func _add_box(box_size: Vector3, pos: Vector3, node_name: String, tex_id: String = "") -> void:
 	var box := CSGBox3D.new()
 	box.size = box_size
 	box.position = pos
 	box.use_collision = true  # CSG collision lands on layer 1 (world) by default
 	box.name = node_name
+	if tex_id != "":
+		box.material = TextureCatalog.make_material(tex_id, _textures)
 	add_child(box)
 
 
