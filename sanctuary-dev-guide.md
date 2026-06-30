@@ -4,7 +4,7 @@
 
 > **Read of your brief:** Your second and third stages were both labelled "Third stage," so this guide treats them as **Stage 1 – Ceremony**, **Stage 2 – Cracks**, **Stage 3 – Escape**. Character names below are suggestions you can ignore; the cult's inner circle going by numbers/titles is kept deliberately because it's creepy and free.
 
-> **Build status (kept in sync with the repo).** Part A is no longer just a plan — the **Phase 0 harness** and the **Blender asset pipeline** are now implemented in the project. This guide is the *spec*; the repo is the *implementation*; they're meant to agree. Repo entry points: `README.md` (quick-start), `CLAUDE.md` (the contract the agent reads), and `tools/blender/README.md` (the asset pipeline). Sections below flag what's built vs. still ahead.
+> **Build status (kept in sync with the repo).** Part A is no longer just a plan — the **Phase 0 harness** and the **Blender asset pipeline** are implemented, and the **Phase 1 greybox vertical slice** is essentially done (all ten systems present in crude form; see Part C). The **PSX surface-texture system** (`TextureCatalog` + `data/textures/textures.json`, with optional normal maps) also now exists. This guide is the *spec*; the repo is the *implementation*; they're meant to agree. Repo entry points: `README.md` (quick-start), `CLAUDE.md` (the contract the agent reads — canonical when the two disagree), and `tools/blender/README.md` (the asset pipeline). Sections below flag what's built vs. still ahead.
 
 ---
 
@@ -92,10 +92,10 @@ Solo dev. Scope is deliberately small. Prefer the simplest thing that works.
 - Run:    `make run`     (human-only; launches the game)
 
 ## Architecture
-- Autoloads (singletons): GameState, SaveSystem, SceneManager, AudioDirector.
+- Autoloads (singletons): GameState, Inventory, SaveSystem, SceneManager, AudioDirector, GlobalInput. (See CLAUDE.md for the canonical, current list.)
 - Data-driven: rooms/npcs/items/dialogue are DATA in /data, read by generic scenes in /scenes/core.
 - World state lives in GameState.flags (Dictionary). Never store progression on nodes.
-- Dialogue uses the Dialogue Manager addon; .dialogue files in /data/dialogue.
+- Dialogue (Phase 1): custom JSON walker (DialogueRunner) over /data/dialogue/<id>.json. Phase 2 swaps in the Dialogue Manager addon (.dialogue files). Either way, gate on GameState flags.
 
 ## Boundaries — DO NOT
 - Do NOT edit anything in /assets (binary, human/Blender owned).
@@ -105,7 +105,7 @@ Solo dev. Scope is deliberately small. Prefer the simplest thing that works.
 
 ## How to add content
 - New item: add an entry to /data/items/items.json; reference by string id.
-- New conversation: add /data/dialogue/<name>.dialogue; gate with GameState flags.
+- New conversation: add /data/dialogue/<id>.json (custom-runner schema) now; switches to .dialogue when the Dialogue Manager addon lands in Phase 2. Gate with GameState flags.
 - New NPC: add /data/npcs/<name>.tres; the generic NPC scene consumes it.
 
 ## Style
@@ -122,7 +122,7 @@ Three layers, cheapest first:
    ```
    godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
    ```
-3. **A smoke-test scene.** *(built)* `tests/smoke/smoke.gd` boots the engine, verifies the five autoloads exist and interoperate (flag → inventory → save → reload), prints `PASS`/`FAIL`, and quits with the right exit code — the agent's "did I break the core loop" canary. In Phase 1 you extend it to spawn the real player, look at an interactable, trigger a pickup, and advance a dialogue node before asserting.
+3. **A smoke-test scene.** *(built)* `tests/smoke/smoke.gd` boots the engine, verifies the six autoloads exist and interoperate (flag → inventory → save → reload), prints `PASS`/`FAIL`, and quits with the right exit code — the agent's "did I break the core loop" canary. In Phase 1 you extend it to spawn the real player, look at an interactable, trigger a pickup, and advance a dialogue node before asserting.
 
 Wrap all three in a `Makefile` so the agent (and you) invoke them by name. Now Claude's loop is real: edit → `make test` → read output → fix.
 
@@ -168,16 +168,22 @@ What's in the repo:
 
 - **PSX look** is achieved in *Godot*, not Blender — see A9.
 
-### A9. The PSX shader (Claude can write all of this)
+### A9. The PSX look — two approaches, one decision still open
 
-The look is a handful of well-understood tricks, all scriptable:
+There are two ways to get the PSX look, and the project currently sits between them. **Decide which you commit to before Phase 2 art lands** — they're not mutually exclusive, but the shader is real work and the texture path may already be "enough."
+
+**What's built today (the texture-catalog path).** The realized look comes entirely from *materials and lighting*, no shader: `TextureCatalog` (`scripts/levels/texture_catalog.gd`) builds a `StandardMaterial3D` per surface with **nearest-neighbour filtering** (the no-bilinear crunch), optional **normal maps** for tactile relief on the flat CSG, low-res PNG source art, and deliberately **dark, low-energy lighting** (`room_builder` reads ambient/sun/bg from room JSON). Textures are referenced by semantic id from a room's `surfaces` block. This is cheap, data-driven, and already gives a credible institutional-PSX feel.
+
+**What's planned but not built (the full shader).** A handful of well-understood, scriptable tricks that go further:
 
 - **Vertex snapping/jitter:** quantize vertex positions in clip space in the vertex shader (the signature wobble).
 - **Affine texture mapping:** disable perspective-correct interpolation so textures swim on near surfaces.
 - **Low internal resolution:** render the 3D world into a `SubViewport` at a low res, then upscale with nearest-neighbour to a full-screen rect. This single move does most of the heavy lifting.
 - **Limited colour depth + ordered dithering**, and **distance fog** doubling as your draw-distance cutoff (which also lets you keep scenes small — a scope win disguised as an aesthetic).
 
-Expose strength/snap/fog as exported uniforms so you tune by eye in-editor and via screenshots.
+No `.gdshader`, `SubViewport`, or dither exists yet. Expose strength/snap/fog as exported uniforms *if* you build it, so you tune by eye in-editor and via screenshots.
+
+> **Open decision:** ship the full SubViewport/vertex-snap/dither shader, or treat the texture-catalog + lighting path as the final look (and maybe add only distance fog)? The vertex wobble and low-res upscale are the parts the texture path can't replicate. Resolve this when you push real hero assets in Phase 2.
 
 ### A10. Scope guardrails (re-read these monthly)
 
@@ -210,7 +216,7 @@ Minimum systems for this genre:
 
 ## Part C — Phased roadmap (~4–6 months part-time; timeboxes are rough)
 
-**Phase 0 — Harness ✓ *(done)*.** Delivered: repo + `.gitignore`, `CLAUDE.md`, `README.md`, `project.godot` with five autoloads (`GameState`, `Inventory`, `SaveSystem`, `SceneManager`, `AudioDirector`), JSON save/load, a dependency-free unit-test runner, a smoke scene, the `Makefile`, and the full Blender asset pipeline (`tools/blender/`, `make assets`). gdtoolkit-verified. **First thing to do on your machine:** run `make smoke` and `make test` against your Godot, and `make gen-examples` against your Blender, to confirm the harness is green end-to-end.
+**Phase 0 — Harness ✓ *(done)*.** Delivered: repo + `.gitignore`, `CLAUDE.md`, `README.md`, `project.godot` with six autoloads (`GameState`, `Inventory`, `SaveSystem`, `SceneManager`, `AudioDirector`, `GlobalInput` — the last added during Phase 1 for Esc-to-quit / the future pause menu), JSON save/load, a dependency-free unit-test runner, a smoke scene, the `Makefile`, and the full Blender asset pipeline (`tools/blender/`, `make assets`). gdtoolkit-verified. **First thing to do on your machine:** run `make smoke` and `make test` against your Godot, and `make gen-examples` against your Blender, to confirm the harness is green end-to-end.
 
 **Phase 1 — Greybox vertical slice (~2–3 weeks).** One grey-box room. Walk in, look at a door (locked), find a key item, read one branching conversation with one NPC, sneak past one patrolling guard with a vision cone, use the key, transition to a second grey room. All ten systems present in crude form. **This is the most important phase** — it de-risks the entire project. No final art. No story polish.
 

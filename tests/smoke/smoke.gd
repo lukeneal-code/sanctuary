@@ -27,7 +27,7 @@ func _ready() -> void:
 
 func _check_core(failures: Array[String]) -> void:
 	for singleton: String in [
-		"GameState", "Inventory", "SaveSystem", "SceneManager", "AudioDirector"
+		"GameState", "Inventory", "SaveSystem", "SceneManager", "AudioDirector", "GlobalInput"
 	]:
 		if get_node_or_null("/root/" + singleton) == null:
 			failures.append("missing autoload: %s" % singleton)
