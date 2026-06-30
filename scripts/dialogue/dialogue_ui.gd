@@ -29,6 +29,9 @@ func begin(runner: DialogueRunner, player: Node = null) -> void:
 	_player = player
 	if _player and "frozen" in _player:
 		_player.frozen = true
+	# Release the mouse so the choice buttons can be clicked (player.gd captures it for look).
+	if DisplayServer.get_name() != "headless":
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_runner.start()
 	_refresh()
 
@@ -62,5 +65,8 @@ func _end() -> void:
 	_runner = null
 	if _player and "frozen" in _player:
 		_player.frozen = false
+	# Recapture the mouse so first-person look resumes.
+	if DisplayServer.get_name() != "headless":
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_player = null
 	dialogue_finished.emit()
