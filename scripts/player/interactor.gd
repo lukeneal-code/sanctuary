@@ -30,11 +30,11 @@ func force_update() -> void:
 
 
 func get_focused() -> Node:
-	return _focused
+	return _focused if is_instance_valid(_focused) else null
 
 
 func try_interact() -> void:
-	if _focused and _focused.has_method("interact"):
+	if is_instance_valid(_focused) and _focused.has_method("interact"):
 		_focused.interact(owner)  # owner is the Player root of the instanced scene
 
 
@@ -43,7 +43,24 @@ func _recompute_focus() -> void:
 	if is_colliding():
 		var collider := get_collider()
 		if collider is Node and (collider as Node).is_in_group("interactable"):
-			hit = collider
-	if hit != _focused:
-		_focused = hit
-		focus_changed.emit(_focused)
+			hit = collider as Node
+	if hit != get_focused():
+		_set_focus(hit)
+
+
+## Tracks the focused interactable AND listens for it leaving the tree. A pickup
+## frees itself on interact, and in Godot a freed reference compares equal to null
+## — so polling the raycast can't notice the focus vanished and the prompt would
+## linger. `tree_exited` gives an explicit clear the instant the node goes away.
+func _set_focus(node: Node) -> void:
+	if is_instance_valid(_focused) and _focused.tree_exited.is_connected(_on_focus_exited):
+		_focused.tree_exited.disconnect(_on_focus_exited)
+	_focused = node
+	if is_instance_valid(_focused):
+		_focused.tree_exited.connect(_on_focus_exited, CONNECT_ONE_SHOT)
+	focus_changed.emit(get_focused())
+
+
+func _on_focus_exited() -> void:
+	_focused = null
+	focus_changed.emit(null)

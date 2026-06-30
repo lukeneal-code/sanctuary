@@ -97,10 +97,30 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 	if GameState.get_flag("exit_unlocked"):
 		failures.append("exit flag set before the door is opened")
 
-	# 2. Find the key.
-	pickup.interact(player)
+	# 2. Find the key — look at it through the real interactor + HUD so the prompt
+	#    that appears must also clear when the pickup frees itself on pickup. Place
+	#    the player at room centre facing the key with nothing interactable behind
+	#    it (like looking down at the floor), so taking it must leave an empty prompt.
+	var prompt_label: Label = null
+	var hud := room.get_node_or_null("HUD")
+	if hud:
+		prompt_label = hud.get_node_or_null("Label")
+	player.teleport(Vector3(0, 0.1, 0), 0.0)
+	pickup.global_position = Vector3(0, 1.6, -1.5)  # on the forward ray, open space behind
+	await get_tree().physics_frame
+	interactor.force_update()
+	if interactor.get_focused() != pickup:
+		failures.append("interactor did not focus the key pickup")
+	if prompt_label != null and prompt_label.text == "":
+		failures.append("HUD prompt did not show for the focused pickup")
+	interactor.try_interact()  # picks it up -> the pickup frees itself
 	if not Inventory.has("rusted_key"):
 		failures.append("key pickup did not add to inventory")
+	await get_tree().physics_frame
+	await get_tree().process_frame  # let queue_free actually delete the pickup
+	interactor.force_update()
+	if prompt_label != null and prompt_label.text != "":
+		failures.append("HUD prompt lingered after the pickup was taken")
 
 	# 3. Use the key — the door opens and writes its flag.
 	if not door.try_open():
@@ -119,10 +139,11 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 			failures.append("dialogue branch did not set its flag")
 
 	# 5. Stealth: a guard with clear line of sight, facing the player, spots it.
+	player.teleport(Vector3(0, 0.1, 0), 0.0)
 	guard.patrol_points = []  # hold still for a deterministic check
+	guard.global_position = Vector3(0, 0, -3)
 	GameState.set_flag("player_spotted", false)
-	guard.global_position = Vector3(0, 0, -2)
-	guard.look_at(Vector3(0, 0, -4), Vector3.UP)  # face the player (horizontal, like patrol)
+	guard.look_at(Vector3(0, 0, 0), Vector3.UP)  # face the player at the origin
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	if not GameState.get_flag("player_spotted"):
@@ -130,7 +151,7 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 
 	# ...and looking away, it does not.
 	GameState.set_flag("player_spotted", false)
-	guard.look_at(Vector3(0, 0, 2), Vector3.UP)  # face away from the player (horizontal)
+	guard.look_at(Vector3(0, 0, -6), Vector3.UP)  # face away from the player
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	if GameState.get_flag("player_spotted"):
