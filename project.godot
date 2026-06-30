@@ -32,6 +32,13 @@ GlobalInput="*res://scripts/core/global_input.gd"
 
 project/assembly_name="Sanctuary"
 
+[display]
+
+window/size/mode=2
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
 [input]
 
 move_forward={

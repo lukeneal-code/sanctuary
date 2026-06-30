@@ -119,6 +119,14 @@ saves a `.tscn` so Godot assigns UIDs. It is re-runnable and overwrites its
 outputs — `godot --headless --path . --script res://tools/godot/scaffold_phase1.gd`.
 After generating, tune the scenes' `@export` values in-editor.
 
+**UI scale.** The game uses 2D content scaling
+(`display/window/stretch/mode="canvas_items"`) against a 1280×720 reference
+resolution, so all UI laid out at that base scales uniformly with the window
+(3D/PSX render is unaffected). Design UI at 1280×720 and let the stretch handle
+sizing — don't hardcode per-`Label` font sizes (they'd also be lost on a scaffold
+re-run). To make all UI globally bigger or smaller, set
+`display/window/stretch/scale`.
+
 ## Blender / asset pipeline
 
 The division of labour: **the human models** (artful, organic, judgement-heavy
