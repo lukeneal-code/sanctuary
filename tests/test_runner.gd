@@ -240,6 +240,18 @@ func test_texture_make_material_unknown_id_is_safe() -> void:
 	_ok(mat.albedo_texture == null, "unknown id leaves the material untextured")
 
 
+func test_texture_make_material_normal_optional() -> void:
+	# No "normal" key -> normal mapping stays off.
+	var plain := TextureCatalog.make_material("stub", {"stub": {}})
+	_ok(not plain.normal_enabled, "normal mapping is off when no normal is declared")
+	# A real normal map from the catalog -> normal mapping on, scale applied.
+	var catalog := TextureCatalog.load_all()
+	if catalog.has("cinder_block_wall") and catalog["cinder_block_wall"].has("normal"):
+		var mat := TextureCatalog.make_material("cinder_block_wall", catalog)
+		_ok(mat.normal_enabled, "declaring a normal turns normal mapping on")
+		_ok(mat.normal_texture != null, "the normal texture is loaded")
+
+
 func test_texture_catalog_paths_exist() -> void:
 	# The texture-side analog of the Blender validator: a typo'd or dangling path
 	# fails `make test` instead of silently rendering nothing in-engine.

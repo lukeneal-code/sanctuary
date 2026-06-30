@@ -26,9 +26,12 @@ static func load_all() -> Dictionary:
 
 
 ## Builds a StandardMaterial3D for a texture id. The PSX crunch lives here:
-## nearest-neighbour filtering, no smoothing. An unknown id or a missing file
-## yields a plain, untextured material rather than crashing, so callers can stay
-## terse (this mirrors the build-material-in-code idiom in guard.gd).
+## nearest-neighbour filtering, no smoothing. An optional "normal" map gives flat
+## CSG surfaces per-pixel relief that reacts to moving light (the sun, and later
+## the player's lamp) — worth it on the boxy environment, off by default per
+## entry. An unknown id or a missing file yields a plain, untextured material
+## rather than crashing, so callers can stay terse (this mirrors the
+## build-material-in-code idiom in guard.gd).
 static func make_material(id: String, catalog: Dictionary) -> StandardMaterial3D:
 	var def: Dictionary = catalog.get(id, {})
 	var mat := StandardMaterial3D.new()
@@ -39,4 +42,9 @@ static func make_material(id: String, catalog: Dictionary) -> StandardMaterial3D
 	var tex_path: String = def.get("path", "")
 	if tex_path != "" and ResourceLoader.exists(tex_path):
 		mat.albedo_texture = load(tex_path) as Texture2D
+	var normal_path: String = def.get("normal", "")
+	if normal_path != "" and ResourceLoader.exists(normal_path):
+		mat.normal_enabled = true
+		mat.normal_texture = load(normal_path) as Texture2D
+		mat.normal_scale = float(def.get("normal_scale", 1.0))
 	return mat
