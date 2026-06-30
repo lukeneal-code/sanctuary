@@ -148,6 +148,8 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 	await get_tree().physics_frame
 	if not GameState.get_flag("player_spotted"):
 		failures.append("guard did not spot the player with a clear line of sight")
+	if not guard.sees_player():
+		failures.append("guard sees_player() false despite a clear line of sight")
 
 	# ...and looking away, it does not.
 	GameState.set_flag("player_spotted", false)
@@ -156,5 +158,7 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 	await get_tree().physics_frame
 	if GameState.get_flag("player_spotted"):
 		failures.append("guard spotted the player while facing away")
+	if guard.sees_player():
+		failures.append("guard still sees_player() while facing away")
 
 	room.queue_free()
