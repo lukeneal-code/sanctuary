@@ -14,12 +14,19 @@ signal transition_requested(target_room: String, target_spawn: String)
 
 ## Empty requires_item means no item is needed — the door is always openable.
 @export var requires_item: String = "rusted_key"
+## If set, the door also stays sealed until this GameState flag is true. This is
+## how story doors open on progress ("you'll be called when it's time") rather than
+## on an item — the flag is written by dialogue, a prior door, etc.
+@export var requires_flag: String = ""
 @export var opened_flag: String = "exit_unlocked"
 @export var open_tension: float = 0.3
 @export var open_rise: float = 2.2
 ## If set, opening this door requests a transition to target_room at target_spawn.
 @export var target_room: String = ""
 @export var target_spawn: String = "default"
+## When true, opening this door advances GameState.day once (the return-to-cell
+## day loop). Idempotent: try_open() only fires the advance on the real open.
+@export var advance_day: bool = false
 ## Shown instead of the default locked line when the door cannot open (flavor).
 @export var locked_prompt: String = ""
 
@@ -35,8 +42,11 @@ func _ready() -> void:
 
 
 ## Pure gate decision, no side effects. Safe on a bare instance (autoloads only).
-## An empty requires_item means the door has no requirement and always opens.
+## A flag gate (if set) must be satisfied first; then an empty requires_item means
+## the door has no item requirement and always opens.
 func can_open() -> bool:
+	if requires_flag != "" and not GameState.get_flag(requires_flag):
+		return false
 	if requires_item == "":
 		return true
 	return Inventory.has(requires_item)
@@ -51,6 +61,8 @@ func try_open() -> bool:
 		return false
 	_opened = true
 	GameState.set_flag(opened_flag, true)
+	if advance_day:
+		GameState.advance_day()
 	AudioDirector.set_tension(open_tension)
 	_apply_open_visuals()
 	return true

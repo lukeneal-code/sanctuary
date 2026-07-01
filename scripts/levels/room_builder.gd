@@ -23,6 +23,7 @@ var _player: Player = null
 var _door: Door = null
 var _pickup: Pickup = null
 var _npc: NpcTalker = null
+var _npcs: Array[NpcTalker] = []
 var _guard: Guard = null
 var _textures: Dictionary = {}
 
@@ -62,6 +63,10 @@ func get_pickup() -> Pickup:
 
 func get_npc() -> NpcTalker:
 	return _npc
+
+
+func get_npcs() -> Array[NpcTalker]:
+	return _npcs
 
 
 func get_guard() -> Guard:
@@ -180,9 +185,11 @@ func _spawn_pickup(e: Dictionary) -> void:
 func _spawn_door(e: Dictionary) -> void:
 	_door = (load(DOOR_SCENE) as PackedScene).instantiate() as Door
 	_door.requires_item = e.get("requires_item", "rusted_key")
+	_door.requires_flag = e.get("requires_flag", "")
 	_door.opened_flag = e.get("opened_flag", "exit_unlocked")
 	_door.target_room = e.get("target_room", "")
 	_door.target_spawn = e.get("target_spawn", "default")
+	_door.advance_day = e.get("advance_day", false)
 	_door.locked_prompt = e.get("locked_prompt", "")
 	_door.transition_requested.connect(_on_transition_requested)
 	add_child(_door)
@@ -198,12 +205,17 @@ func _on_transition_requested(to_room: String, to_spawn: String) -> void:
 
 
 func _spawn_npc(e: Dictionary) -> void:
-	_npc = (load(NPC_SCENE) as PackedScene).instantiate() as NpcTalker
-	_npc.dialogue_id = e.get("dialogue", "")
-	_npc.npc_name = e.get("name", "")
-	add_child(_npc)
-	_npc.global_position = _to_vec3(e.get("pos", [0, 0, 0]))
-	_npc.rotation.y = deg_to_rad(e.get("yaw", 0.0))
+	var npc := (load(NPC_SCENE) as PackedScene).instantiate() as NpcTalker
+	npc.dialogue_id = e.get("dialogue", "")
+	npc.npc_name = e.get("name", "")
+	add_child(npc)
+	npc.global_position = _to_vec3(e.get("pos", [0, 0, 0]))
+	npc.rotation.y = deg_to_rad(e.get("yaw", 0.0))
+	_npcs.append(npc)
+	# get_npc() keeps returning the first NPC (Coll / the Overseer), so the
+	# existing smoke assertions hold even when a room spawns several.
+	if _npc == null:
+		_npc = npc
 
 
 func _spawn_guard(e: Dictionary) -> void:
@@ -226,8 +238,9 @@ func _wire_ui() -> void:
 	if hud and _player:
 		hud.bind_interactor(_player.get_interactor())
 	var dui := get_node_or_null("DialogueUI")
-	if dui and _npc:
-		_npc.dialogue_ui = dui
+	if dui:
+		for n: NpcTalker in _npcs:
+			n.dialogue_ui = dui
 
 
 func _to_vec3(arr: Variant) -> Vector3:

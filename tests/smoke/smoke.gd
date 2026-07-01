@@ -238,9 +238,11 @@ func _check_ceremony_opening(failures: Array[String]) -> void:
 	if coll.dialogue_ui == null:
 		failures.append("corridor NPC did not get its DialogueUI wired")
 	if ceremony_door.can_open():
-		failures.append("ceremony doors should be sealed (no summons yet)")
+		failures.append("ceremony doors should be sealed until Coll leads you on")
 
-	# Talk to Coll: holding the conversation sets its flag.
+	# Walk-and-talk with Coll: finishing the conversation sets coll_leads_on, the
+	# flag the ceremony door is gated on. The door reads GameState live, so it
+	# unseals without a rebuild.
 	var convo := DialogueRunner.from_id(coll.dialogue_id)
 	if convo == null:
 		failures.append("coll_intro dialogue failed to load")
@@ -248,5 +250,80 @@ func _check_ceremony_opening(failures: Array[String]) -> void:
 		convo.start()
 		if not GameState.get_flag("met_coll"):
 			failures.append("talking to Coll did not set met_coll")
-
+		var guard_convo := 0
+		while not convo.is_finished() and guard_convo < 32:
+			convo.choose(0)
+			guard_convo += 1
+	if not GameState.get_flag("coll_leads_on"):
+		failures.append("finishing Coll's walk-and-talk did not set coll_leads_on")
+	if not ceremony_door.can_open():
+		failures.append("ceremony doors still sealed after Coll leads you on")
+	if ceremony_door.target_room != "ceremony_hall":
+		failures.append("ceremony door does not target the hall")
 	corridor.queue_free()
+	await get_tree().process_frame
+
+	# --- The Ceremony hall: several NPCs preside; the compliance ritual runs. ---
+	GameState.current_room = "ceremony_hall"
+	GameState.player_spawn = "from_corridor"
+	var hall := LEVEL_SCENE.instantiate()
+	add_child(hall)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var hall_player: Player = hall.get_player()
+	var hall_door: Door = hall.get_door()
+	var npcs: Array[NpcTalker] = hall.get_npcs()
+	var officiant: NpcTalker = null
+	for n: NpcTalker in npcs:
+		if n.dialogue_id == "ceremony_ritual":
+			officiant = n
+	if hall_player == null or hall_door == null or officiant == null:
+		failures.append("ceremony_hall did not build the player / exit door / Officiant")
+		hall.queue_free()
+		return
+
+	# Multi-NPC rooms must wire the DialogueUI into every NPC, not just the last.
+	for n: NpcTalker in npcs:
+		if n.dialogue_ui == null:
+			failures.append("hall NPC '%s' did not get its DialogueUI wired" % n.npc_name)
+	if hall_door.can_open():
+		failures.append("hall exit openable before the ritual is done")
+
+	# Run the compliance ritual to its end (every choice is illusory — goto forward).
+	var ritual := DialogueRunner.from_id(officiant.dialogue_id)
+	if ritual == null:
+		failures.append("ceremony_ritual dialogue failed to load")
+	else:
+		ritual.start()
+		var guard_ritual := 0
+		while not ritual.is_finished() and guard_ritual < 32:
+			ritual.choose(0)
+			guard_ritual += 1
+	if not GameState.get_flag("ritual_completed"):
+		failures.append("finishing the ritual did not set ritual_completed")
+	if not GameState.get_flag("witnessed_kassian_cruelty"):
+		failures.append("the ritual did not stage Kassian's cruelty beat")
+	if not hall_door.can_open():
+		failures.append("hall exit still sealed after the ritual")
+	if hall_door.target_room != "cell_night" or not hall_door.advance_day:
+		failures.append("hall exit is not a day-advancing threshold to cell_night")
+
+	# Leave the hall: opening the threshold advances the day (the return-to-cell loop).
+	var day_before := GameState.day
+	hall_door.try_open()
+	if GameState.day != day_before + 1:
+		failures.append("leaving the hall did not advance the day")
+	hall.queue_free()
+	await get_tree().process_frame
+
+	# --- Day two: the night cell you land in. ---
+	GameState.current_room = "cell_night"
+	GameState.player_spawn = "from_ceremony"
+	var cell := LEVEL_SCENE.instantiate()
+	add_child(cell)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if cell.get_player() == null:
+		failures.append("cell_night did not build the player")
+	cell.queue_free()

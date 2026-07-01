@@ -21,10 +21,14 @@
 	},
 	"entities": [
 		{ "type": "npc", "name": "Brother Coll", "dialogue": "coll_intro", "pos": [0.8, 0, 3], "yaw": 180 },
+		{ "type": "npc", "name": "Edrin", "dialogue": "edrin_pass", "pos": [-0.8, 0, 4.5], "yaw": 90 },
 		{
 			"type": "door",
-			"requires_item": "ceremony_summons",
+			"requires_item": "",
+			"requires_flag": "coll_leads_on",
 			"opened_flag": "entered_ceremony",
+			"target_room": "ceremony_hall",
+			"target_spawn": "from_corridor",
 			"locked_prompt": "The Ceremony doors are sealed. You'll be called when it's time.",
 			"pos": [0, 1.1, -7]
 		}

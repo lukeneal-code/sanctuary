@@ -245,6 +245,34 @@ func test_door_transition_emits_signal() -> void:
 	d.queue_free()
 
 
+func test_door_flag_gating() -> void:
+	var d := Door.new()
+	d.requires_item = ""  # no item gate; only the story flag gate is under test
+	d.requires_flag = "coll_leads_on"
+	d.locked_prompt = "Sealed."
+	add_child(d)
+	_ok(not d.can_open(), "flag-gated door stays locked until its flag is set")
+	_eq(d.get_prompt(), "Sealed.", "flag-gated door shows its locked_prompt while sealed")
+	GameState.set_flag("coll_leads_on", true)
+	_ok(d.can_open(), "flag-gated door opens once its flag is set")
+	_eq(d.get_prompt(), "Press E to open", "unsealed flag-gated door prompts to open")
+	d.queue_free()
+
+
+func test_door_advance_day_advances_once() -> void:
+	var d := Door.new()
+	d.requires_item = ""  # threshold door opens freely; advance_day is under test
+	d.opened_flag = "left_ceremony_hall"
+	d.advance_day = true
+	add_child(d)
+	_eq(GameState.day, 1, "day starts at 1")
+	_ok(d.try_open(), "an advance_day threshold door opens")
+	_eq(GameState.day, 2, "opening advances the day once")
+	_ok(d.try_open(), "re-opening is idempotent")
+	_eq(GameState.day, 2, "the day does not advance again on a repeat open")
+	d.queue_free()
+
+
 func test_pickup_adds_item() -> void:
 	var p := Pickup.new()
 	p.item_id = "rusted_key"
@@ -324,7 +352,7 @@ func test_texture_catalog_paths_exist() -> void:
 ## room only when a human walks into it.
 func test_ceremony_rooms_reference_valid_data() -> void:
 	var items := ItemCatalog.load_all()
-	for room_id: String in ["booking_cell", "ceremony_corridor"]:
+	for room_id: String in ["booking_cell", "ceremony_corridor", "ceremony_hall", "cell_night"]:
 		var path := "res://data/rooms/%s.json" % room_id
 		_ok(FileAccess.file_exists(path), "room file exists: %s" % room_id)
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -342,7 +370,17 @@ func test_ceremony_rooms_reference_valid_data() -> void:
 				"door":
 					var tr: String = e.get("target_room", "")
 					if tr != "":
-						_ok(
-							FileAccess.file_exists("res://data/rooms/%s.json" % tr),
-							"door target_room exists: %s" % tr,
+						var tpath := "res://data/rooms/%s.json" % tr
+						_ok(FileAccess.file_exists(tpath), "door target_room exists: %s" % tr)
+						# The target spawn must exist, or the transition silently falls
+						# back to "default" and the player lands in the wrong place.
+						var tspawn: String = e.get("target_spawn", "default")
+						var tparsed: Variant = JSON.parse_string(
+							FileAccess.get_file_as_string(tpath)
 						)
+						if typeof(tparsed) == TYPE_DICTIONARY:
+							var spawns: Dictionary = (tparsed as Dictionary).get("spawns", {})
+							_ok(
+								spawns.has(tspawn),
+								"door target_spawn '%s' exists in %s" % [tspawn, tr],
+							)

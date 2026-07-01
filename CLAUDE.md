@@ -138,14 +138,19 @@ screenshot. Do not guess at look/feel blind.
   0 faces −Z, and the north (−Z) wall has a centred 1.8 m doorway gap where the exit
   door sits. `surfaces` maps a role to a texture id (see *New texture*); an absent
   role leaves that surface untextured (the grey greybox default). Entity types:
-  `pickup{item}`, `door{requires_item, opened_flag, target_room?, target_spawn?,
-  locked_prompt?}`, `npc{name, dialogue}`, `guard{patrol:[[x,y,z]...], fov, range,
-  speed}`, each with `pos`/`yaw`. A **door** with an empty `requires_item` needs no
-  item; with a `target_room` it's a *threshold* — opening it moves the player to
-  `target_room` at `target_spawn` (so that room needs a matching named spawn).
+  `pickup{item}`, `door{requires_item, requires_flag?, opened_flag, target_room?,
+  target_spawn?, advance_day?, locked_prompt?}`, `npc{name, dialogue}`,
+  `guard{patrol:[[x,y,z]...], fov, range, speed}`, each with `pos`/`yaw`. A **door**
+  with an empty `requires_item` needs no item; `requires_flag` also seals it until
+  that GameState flag is true (how story doors open on progress — "you'll be called
+  when it's time" — the flag being set by dialogue, a prior door, etc.); with a
+  `target_room` it's a *threshold* — opening it moves the player to `target_room` at
+  `target_spawn` (so that room needs a matching named spawn), and `advance_day:true`
+  ticks the day once on the way through (the return-to-cell day loop).
   `locked_prompt` overrides the default "Locked — needs a key" line. New rooms are
-  new JSON, not new scene trees. (NPCs are inline in the room JSON for now; promote
-  to `data/npcs/` if they grow shared data.) Add a test for any new logic.
+  new JSON, not new scene trees. A room may hold **several NPCs** — each gets the
+  shared DialogueUI wired (they're inline in the room JSON for now; promote to
+  `data/npcs/` if they grow shared data). Add a test for any new logic.
 
 ## Scene authoring
 
@@ -231,13 +236,18 @@ auto-discovered `test_*` runner doesn't trip the cap).
 - **Phase 2 (in progress):** Stage 1 "Ceremony" content, textured by id via the PSX
   catalogue (`data/textures/textures.json` + `TextureCatalog`, see *New texture*;
   fills as real PNGs land). **Landed:** room-to-room transitions (threshold doors +
-  `GameState.current_room`), the day-cycle scaffold, and the opening beat — wake in
+  `GameState.current_room`), the day-cycle scaffold, the opening beat — wake in
   the booking cell, don the robe to leave, meet Brother Coll in the corridor
   (`booking_cell` / `ceremony_corridor` rooms, `coll_intro` dialogue, `initiate_robe`
-  item). **Ahead:** the Ceremony hall + compliance ritual (scripted as dialogue for
-  now), the rest of the cast (Edrin / Vesna / Renn / Kassian / inner circle), the
-  return-to-booking day loop, and the Dialogue Manager addon swap (still the stopgap
-  JSON runner). Look/feel needs in-editor tuning (`make run`).
+  item) — and the full Ceremony beat: flag-gated + day-advancing doors, the Ceremony
+  hall (`ceremony_hall`), the compliance ritual scripted as dialogue with illusory
+  choices (`ceremony_ritual`), the cast you meet along the way (Edrin / Vesna / Renn /
+  Kassian, `edrin_pass` / `vesna_intro` / `renn_intro`), and the loop close — leave
+  the hall and land in the day-two night cell (`cell_night`) with the day advanced.
+  **Ahead:** the inner circle as distinct characters, the fuller return-to-booking
+  day loop (a cell that regenerates per day rather than the terminal `cell_night`),
+  and the Dialogue Manager addon swap (still the stopgap JSON runner). Look/feel
+  needs in-editor tuning (`make run`).
 - **Phase 3:** Stage 2 "Cracks" (biggest content phase).
 - **Phase 4:** Stage 3 "Escape" + endings.
 - **Phase 5:** audio, save/load hardening, menus, polish.
