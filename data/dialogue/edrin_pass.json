@@ -1,0 +1,22 @@
+{
+	"id": "edrin_pass",
+	"start": "n_pass",
+	"nodes": {
+		"n_pass": {
+			"speaker": "Edrin",
+			"text": "Welcome to the brotherhood. You'll like it here. Everyone likes it here.",
+			"set_flags": { "met_edrin": true },
+			"choices": [
+				{ "text": "You alright?", "goto": "n_alright" },
+				{ "text": "(Keep walking.)", "goto": "" }
+			]
+		},
+		"n_alright": {
+			"speaker": "Edrin",
+			"text": "...Yeah. Just tired. It's been a long few years. — Go on. Don't keep Coll waiting.",
+			"choices": [
+				{ "text": "(Keep walking.)", "goto": "" }
+			]
+		}
+	}
+}

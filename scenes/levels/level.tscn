@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_ui.tscn" id="4_ghkgo"]
 [ext_resource type="Script" path="res://scripts/dialogue/dialogue_ui.gd" id="5_230bg"]
 
-[node name="Greybox" type="Node3D" unique_id=161054025]
+[node name="Level" type="Node3D" unique_id=161054025]
 script = ExtResource("1_6dwg8")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1576350908 instance=ExtResource("2_g53na")]

@@ -1,0 +1,31 @@
+{
+	"id": "renn_intro",
+	"start": "n_glance",
+	"nodes": {
+		"n_glance": {
+			"speaker": "Renn",
+			"text": "(Renn doesn't say anything at first — just watches you, the way you'd watch a door you might need later.)",
+			"set_flags": { "met_renn": true },
+			"choices": [
+				{ "text": "...", "goto": "n_word" },
+				{ "text": "(Hold the look.)", "goto": "n_word" }
+			]
+		},
+		"n_word": {
+			"speaker": "Renn",
+			"text": "Keep your head down in there. Copy everyone. Don't be interesting.",
+			"set_flags": { "renn_connection_made": true },
+			"choices": [
+				{ "text": "Why tell me that?", "goto": "n_why" },
+				{ "text": "(Nod.)", "goto": "" }
+			]
+		},
+		"n_why": {
+			"speaker": "Renn",
+			"text": "Because nobody told me. That's all.",
+			"choices": [
+				{ "text": "(Nod.)", "goto": "" }
+			]
+		}
+	}
+}

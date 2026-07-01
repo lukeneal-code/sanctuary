@@ -1,0 +1,32 @@
+{
+	"id": "cell_night",
+	"ambient": "drone_low",
+	"objective": "Day two. Rest, if they let you.",
+	"size": [4, 3, 5],
+	"surfaces": {
+		"floor": "tile_floor_worn",
+		"ceiling": "concrete_ceiling",
+		"walls": "cinder_block_wall"
+	},
+	"light": {
+		"bg_color": [0.015, 0.015, 0.02],
+		"ambient_color": [0.32, 0.34, 0.42],
+		"ambient_energy": 0.28,
+		"sun_energy": 0.2,
+		"sun_angle": [-60, 25]
+	},
+	"spawns": {
+		"default": { "pos": [0, 0.1, 1.5], "yaw": 0 },
+		"from_ceremony": { "pos": [0, 0.1, 1.5], "yaw": 0 }
+	},
+	"entities": [
+		{
+			"type": "door",
+			"requires_flag": "cell_unlocked",
+			"requires_item": "",
+			"opened_flag": "cell_night_open",
+			"locked_prompt": "Locked from the outside. The day is over.",
+			"pos": [0, 1.1, -2.5]
+		}
+	]
+}

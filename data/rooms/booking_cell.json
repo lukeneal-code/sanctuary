@@ -1,0 +1,32 @@
+{
+	"id": "booking_cell",
+	"ambient": "drone_low",
+	"objective": "Dress, and present yourself for the Ceremony.",
+	"size": [4, 3, 5],
+	"surfaces": {
+		"floor": "tile_floor_worn",
+		"ceiling": "concrete_ceiling",
+		"walls": "cinder_block_wall"
+	},
+	"light": {
+		"bg_color": [0.04, 0.035, 0.03],
+		"ambient_color": [0.55, 0.5, 0.42],
+		"ambient_energy": 0.5,
+		"sun_energy": 0.4,
+		"sun_angle": [-50, 20]
+	},
+	"spawns": {
+		"default": { "pos": [0, 0.1, 1.5], "yaw": 0 }
+	},
+	"entities": [
+		{ "type": "pickup", "item": "initiate_robe", "pos": [1.2, 0.6, 0] },
+		{
+			"type": "door",
+			"requires_item": "initiate_robe",
+			"opened_flag": "left_booking_cell",
+			"target_room": "ceremony_corridor",
+			"target_spawn": "from_booking",
+			"pos": [0, 1.1, -2.5]
+		}
+	]
+}

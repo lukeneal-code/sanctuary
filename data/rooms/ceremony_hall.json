@@ -1,0 +1,39 @@
+{
+	"id": "ceremony_hall",
+	"ambient": "drone_low",
+	"objective": "Take your place. Do as the others do.",
+	"size": [10, 4, 12],
+	"surfaces": {
+		"floor": "tile_floor_worn",
+		"ceiling": "concrete_ceiling",
+		"walls": "cinder_block_wall"
+	},
+	"light": {
+		"bg_color": [0.02, 0.02, 0.025],
+		"ambient_color": [0.4, 0.4, 0.46],
+		"ambient_energy": 0.3,
+		"sun_energy": 0.7,
+		"sun_angle": [-78, 10]
+	},
+	"spawns": {
+		"default": { "pos": [0, 0.1, 5], "yaw": 0 },
+		"from_corridor": { "pos": [0, 0.1, 5], "yaw": 0 }
+	},
+	"entities": [
+		{ "type": "npc", "name": "The Officiant", "dialogue": "ceremony_ritual", "pos": [0, 0, -3], "yaw": 180 },
+		{ "type": "npc", "name": "Kassian", "dialogue": "kassian_intro", "pos": [-2.2, 0, -2.5], "yaw": 160 },
+		{ "type": "npc", "name": "Vesna", "dialogue": "vesna_intro", "pos": [-2.5, 0, 1.5], "yaw": 20 },
+		{ "type": "npc", "name": "Renn", "dialogue": "renn_intro", "pos": [2.5, 0, 1.5], "yaw": -20 },
+		{
+			"type": "door",
+			"requires_item": "",
+			"requires_flag": "ritual_completed",
+			"opened_flag": "left_ceremony_hall",
+			"target_room": "cell_night",
+			"target_spawn": "from_ceremony",
+			"advance_day": true,
+			"locked_prompt": "The Ceremony is not finished. Stay in your place.",
+			"pos": [0, 1.1, -6]
+		}
+	]
+}

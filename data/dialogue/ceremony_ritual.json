@@ -1,0 +1,46 @@
+{
+	"id": "ceremony_ritual",
+	"start": "n_open",
+	"nodes": {
+		"n_open": {
+			"speaker": "The Officiant",
+			"text": "You come to us willing. So we hear it from you. Say: 'I come willing.'",
+			"choices": [
+				{ "text": "\"I come willing.\"", "goto": "n_gesture" },
+				{ "text": "[Mouth the words with the room.]", "goto": "n_gesture" }
+			]
+		},
+		"n_gesture": {
+			"speaker": "The Officiant",
+			"text": "Hands open. Palms up, as the willing do. — Good. You learn quickly. They always do.",
+			"choices": [
+				{ "text": "(Open your hands.)", "goto": "n_kass" },
+				{ "text": "(Do what the others do.)", "goto": "n_kass" }
+			]
+		},
+		"n_kass": {
+			"speaker": "Kassian",
+			"text": "(Kassian steps behind the initiate to your left — a boy, younger than you — and closes a hand on the back of his neck until his knees fold. The boy keeps his palms up. No one stops. The Officiant does not pause.)",
+			"set_flags": { "met_kassian": true, "witnessed_kassian_cruelty": true },
+			"choices": [
+				{ "text": "(Look away.)", "goto": "n_kass_after" },
+				{ "text": "(Watch.)", "goto": "n_kass_after" }
+			]
+		},
+		"n_kass_after": {
+			"speaker": "Kassian",
+			"text": "Eyes forward, new blood. You'll get your turn to be looked at.",
+			"choices": [
+				{ "text": "(Face forward.)", "goto": "n_close" }
+			]
+		},
+		"n_close": {
+			"speaker": "The Officiant",
+			"text": "You are willing. You are kept. You are ours until the Sanctuary has no more need of the word 'you.' — The Ceremony is complete. Return to your rest.",
+			"set_flags": { "ritual_completed": true },
+			"choices": [
+				{ "text": "(Lower your hands.)", "goto": "" }
+			]
+		}
+	}
+}

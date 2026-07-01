@@ -1,0 +1,5 @@
+# gdlint config — gdtoolkit defaults, merged with the overrides below.
+# The unit-test runner (tests/test_runner.gd) intentionally has many public
+# test_* methods; each is auto-discovered by name, so the file blows past the
+# default cap of 20. Raise the ceiling rather than fold distinct tests together.
+max-public-methods: 30

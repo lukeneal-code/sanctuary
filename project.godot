@@ -28,16 +28,16 @@ SceneManager="*res://scripts/core/scene_manager.gd"
 AudioDirector="*res://scripts/core/audio_director.gd"
 GlobalInput="*res://scripts/core/global_input.gd"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/mode=2
+window/stretch/mode="canvas_items"
+
 [dotnet]
 
 project/assembly_name="Sanctuary"
-
-[display]
-
-window/size/mode=2
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/stretch/mode="canvas_items"
 
 [input]
 

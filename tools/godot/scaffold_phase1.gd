@@ -26,7 +26,7 @@ func _initialize() -> void:
 	_build_hud()
 	_build_dialogue_ui()
 	# Level last.
-	_build_greybox()
+	_build_level()
 	print("scaffold: done")
 	quit()
 
@@ -170,15 +170,15 @@ func _build_dialogue_ui() -> void:
 # --- level -------------------------------------------------------------------
 
 
-func _build_greybox() -> void:
+func _build_level() -> void:
 	var root := Node3D.new()
-	root.name = "Greybox"
+	root.name = "Level"
 	root.set_script(load("res://scripts/levels/room_builder.gd"))
 	var hud := (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate()
 	_attach(root, hud)
 	var dui := (load("res://scenes/ui/dialogue_ui.tscn") as PackedScene).instantiate()
 	_attach(root, dui)
-	_save(root, "res://scenes/levels/greybox.tscn")
+	_save(root, "res://scenes/levels/level.tscn")
 
 
 # --- helpers -----------------------------------------------------------------

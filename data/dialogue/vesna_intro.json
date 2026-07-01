@@ -1,0 +1,31 @@
+{
+	"id": "vesna_intro",
+	"start": "n_greet",
+	"nodes": {
+		"n_greet": {
+			"speaker": "Vesna",
+			"text": "Another one. Fresh off the truck and already tucked into the robe. They work fast, don't they.",
+			"set_flags": { "met_vesna": true },
+			"choices": [
+				{ "text": "Who are you?", "goto": "n_who" },
+				{ "text": "[Say nothing.]", "goto": "n_who" }
+			]
+		},
+		"n_who": {
+			"speaker": "Vesna",
+			"text": "Vesna. Welcome to the most spiritual place you'll ever need an exit plan for.",
+			"set_flags": { "vesna_defiant_noticed": true },
+			"choices": [
+				{ "text": "You shouldn't say that here.", "goto": "n_warn" },
+				{ "text": "(Smile back.)", "goto": "" }
+			]
+		},
+		"n_warn": {
+			"speaker": "Vesna",
+			"text": "Relax. They love me. Haven't worked out why yet — that's the fun part. Now get in line before Coll notices you've got a mouth.",
+			"choices": [
+				{ "text": "(Take your place.)", "goto": "" }
+			]
+		}
+	}
+}
