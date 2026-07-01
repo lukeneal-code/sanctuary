@@ -1,0 +1,31 @@
+{
+	"id": "coll_intro",
+	"start": "n_greet",
+	"nodes": {
+		"n_greet": {
+			"speaker": "Brother Coll",
+			"text": "There you are. Look at you — already dressed, already ours. Sleep well? Of course you did. Everyone sleeps well their first night.",
+			"set_flags": { "met_coll": true },
+			"choices": [
+				{ "text": "Where am I?", "goto": "n_doctrine" },
+				{ "text": "[Nod.]", "goto": "n_doctrine" }
+			]
+		},
+		"n_doctrine": {
+			"speaker": "Brother Coll",
+			"text": "Home. The only one that kept its promises. — the willing are remembered, the willing are kept —. Hm. Doesn't matter. You'll feel it at the Ceremony.",
+			"choices": [
+				{ "text": "What did you just say?", "goto": "n_lead" },
+				{ "text": "I'm ready.", "goto": "n_lead" }
+			]
+		},
+		"n_lead": {
+			"speaker": "Brother Coll",
+			"text": "Good lad. Stay close, stay quiet, do what the others do. That's all anyone ever has to do here. This way.",
+			"set_flags": { "coll_leads_on": true },
+			"choices": [
+				{ "text": "(Follow him.)", "goto": "" }
+			]
+		}
+	}
+}

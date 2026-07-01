@@ -59,6 +59,20 @@ func test_flag_change_signal_fires_once() -> void:
 	_eq(seen.size(), 1, "flag_changed should fire once for a real change")
 
 
+func test_day_and_current_room_roundtrip() -> void:
+	_eq(GameState.day, 1, "day starts at 1")
+	GameState.advance_day()
+	_eq(GameState.day, 2, "advance_day increments the day")
+	GameState.current_room = "ceremony_corridor"
+	var snap := GameState.to_dict()
+	GameState.clear()
+	_eq(GameState.day, 1, "clear resets the day")
+	_eq(GameState.current_room, "", "clear resets current_room")
+	GameState.from_dict(snap)
+	_eq(GameState.day, 2, "day restored from snapshot")
+	_eq(GameState.current_room, "ceremony_corridor", "current_room restored from snapshot")
+
+
 # --- Inventory ---------------------------------------------------------------
 
 
@@ -191,6 +205,46 @@ func test_door_gating() -> void:
 	d.queue_free()
 
 
+func test_door_no_requirement_opens() -> void:
+	var d := Door.new()
+	d.requires_item = ""  # no item required -> always openable
+	add_child(d)
+	_ok(d.can_open(), "a door with no required item is always openable")
+	_eq(d.get_prompt(), "Press E to open", "an openable door prompts to open")
+	d.queue_free()
+
+
+func test_door_locked_prompt() -> void:
+	var d := Door.new()
+	d.requires_item = "ceremony_summons"  # never held in this test
+	d.locked_prompt = "The doors are sealed."
+	add_child(d)
+	_ok(not d.can_open(), "door stays locked without its item")
+	_eq(d.get_prompt(), "The doors are sealed.", "locked_prompt overrides the default locked line")
+	d.locked_prompt = ""
+	_eq(d.get_prompt(), "Locked — needs a key", "default locked line when no locked_prompt")
+	d.queue_free()
+
+
+func test_door_transition_emits_signal() -> void:
+	var d := Door.new()
+	d.requires_item = ""  # threshold door: opens freely, then asks to move rooms
+	d.opened_flag = "left_booking_cell"
+	d.target_room = "ceremony_corridor"
+	d.target_spawn = "from_booking"
+	add_child(d)
+	var seen: Array = []
+	var cb: Callable = func(room: String, spawn: String) -> void: seen.append([room, spawn])
+	d.transition_requested.connect(cb)
+	d.interact(null)
+	_ok(GameState.get_flag("left_booking_cell"), "threshold door sets its opened flag")
+	_eq(seen.size(), 1, "opening a threshold door requests exactly one transition")
+	if seen.size() == 1:
+		_eq(seen[0][0], "ceremony_corridor", "transition targets the right room")
+		_eq(seen[0][1], "from_booking", "transition targets the right spawn")
+	d.queue_free()
+
+
 func test_pickup_adds_item() -> void:
 	var p := Pickup.new()
 	p.item_id = "rusted_key"
@@ -260,3 +314,35 @@ func test_texture_catalog_paths_exist() -> void:
 		var path: String = catalog[id].get("path", "")
 		_ok(path != "", "texture '%s' declares a path" % id)
 		_ok(ResourceLoader.exists(path), "texture '%s' path resolves: %s" % [id, path])
+
+
+# --- Ceremony content (Phase 2) ----------------------------------------------
+
+
+## Validation analog of the texture-path test: a typo in a Ceremony room's item,
+## dialogue id, or transition target fails `make test` instead of breaking the
+## room only when a human walks into it.
+func test_ceremony_rooms_reference_valid_data() -> void:
+	var items := ItemCatalog.load_all()
+	for room_id: String in ["booking_cell", "ceremony_corridor"]:
+		var path := "res://data/rooms/%s.json" % room_id
+		_ok(FileAccess.file_exists(path), "room file exists: %s" % room_id)
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		_eq(typeof(parsed), TYPE_DICTIONARY, "room parses to an object: %s" % room_id)
+		if typeof(parsed) != TYPE_DICTIONARY:
+			continue
+		for e: Dictionary in (parsed as Dictionary).get("entities", []):
+			match e.get("type", ""):
+				"pickup":
+					var item: String = e.get("item", "")
+					_ok(items.has(item), "pickup item is in the catalog: %s" % item)
+				"npc":
+					var did: String = e.get("dialogue", "")
+					_ok(DialogueRunner.from_id(did) != null, "npc dialogue loads: %s" % did)
+				"door":
+					var tr: String = e.get("target_room", "")
+					if tr != "":
+						_ok(
+							FileAccess.file_exists("res://data/rooms/%s.json" % tr),
+							"door target_room exists: %s" % tr,
+						)

@@ -1,4 +1,10 @@
 {
+    "initiate_robe": {
+        "display_name": "Initiate's Robe",
+        "description": "Coarse grey wool, folded with care it doesn't deserve. They want you in it before you step outside the cell.",
+        "combines_with": [],
+        "combines_into": ""
+    },
     "rusted_key": {
         "display_name": "Rusted Key",
         "description": "Heavy iron, pitted with age. It fits something old.",

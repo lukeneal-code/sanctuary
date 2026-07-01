@@ -6,15 +6,18 @@ extends Node
 ## deterministic and runs under --headless.
 ## Run via:  godot --headless --path . res://tests/smoke/smoke.tscn
 
+const LEVEL_SCENE := preload("res://scenes/levels/level.tscn")
+
 
 func _ready() -> void:
 	var failures: Array[String] = []
 
 	_check_core(failures)
 	await _check_greybox_slice(failures)
+	await _check_ceremony_opening(failures)
 
 	if failures.is_empty():
-		print("SMOKE: PASS — core loop + greybox slice work end to end.")
+		print("SMOKE: PASS — core loop + greybox slice + ceremony opening work end to end.")
 		get_tree().quit(0)
 	else:
 		for f: String in failures:
@@ -69,7 +72,9 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 		if not InputMap.has_action(action):
 			failures.append("missing input action: %s" % action)
 
-	var room := (load("res://scenes/levels/greybox.tscn") as PackedScene).instantiate()
+	# GameState was cleared above, so current_room is "" and the level host falls
+	# back to its @export room_id ("greybox") — this drives the Phase 1 room.
+	var room := LEVEL_SCENE.instantiate()
 	add_child(room)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -162,3 +167,86 @@ func _check_greybox_slice(failures: Array[String]) -> void:
 		failures.append("guard still sees_player() while facing away")
 
 	room.queue_free()
+
+
+# --- Phase 2: the Ceremony opening beat --------------------------------------
+
+
+## Drives the opening: wake in the booking cell, don the robe to unlock the exit,
+## then (the transition) load the corridor where Coll waits and the Ceremony doors
+## are sealed. The same generic level.tscn hosts both rooms; which it builds comes
+## from GameState.current_room. The smoke instantiates the host as its own child
+## (not via get_tree().change_scene), so it reproduces a transition by setting
+## current_room + re-instantiating — the room_builder handler's real scene swap is
+## a thin SceneManager call exercised in the running game.
+func _check_ceremony_opening(failures: Array[String]) -> void:
+	# --- Room 1: booking cell ---
+	GameState.clear()
+	Inventory.items.clear()
+	GameState.current_room = "booking_cell"
+	var booking := LEVEL_SCENE.instantiate()
+	add_child(booking)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var player: Player = booking.get_player()
+	var robe: Pickup = booking.get_pickup()
+	var exit_door: Door = booking.get_door()
+	if player == null or robe == null or exit_door == null:
+		failures.append("booking_cell did not build player/robe pickup/exit door")
+		booking.queue_free()
+		return
+
+	# The exit is robe-gated: you can't leave until you're dressed.
+	if exit_door.can_open():
+		failures.append("booking exit openable before the robe is taken")
+	if exit_door.target_room != "ceremony_corridor":
+		failures.append("booking exit does not target the ceremony corridor")
+
+	# Take the robe through the real interactor (place it on the forward ray).
+	var interactor := player.get_interactor()
+	player.teleport(Vector3(0, 0.1, 0), 0.0)
+	robe.global_position = Vector3(0, 1.6, -1.5)
+	await get_tree().physics_frame
+	interactor.force_update()
+	if interactor.get_focused() != robe:
+		failures.append("interactor did not focus the robe pickup")
+	interactor.try_interact()
+	if not Inventory.has("initiate_robe"):
+		failures.append("robe pickup did not add to inventory")
+	if not exit_door.can_open():
+		failures.append("booking exit still locked after donning the robe")
+	booking.queue_free()
+	await get_tree().process_frame
+
+	# --- The transition: corridor, entered from the booking side ---
+	GameState.current_room = "ceremony_corridor"
+	GameState.player_spawn = "from_booking"
+	var corridor := LEVEL_SCENE.instantiate()
+	add_child(corridor)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var coll: NpcTalker = corridor.get_npc()
+	var ceremony_door: Door = corridor.get_door()
+	if coll == null or ceremony_door == null:
+		failures.append("ceremony_corridor did not build Coll/the ceremony door")
+		corridor.queue_free()
+		return
+	if coll.dialogue_id != "coll_intro":
+		failures.append("corridor NPC is not wired to coll_intro")
+	if coll.dialogue_ui == null:
+		failures.append("corridor NPC did not get its DialogueUI wired")
+	if ceremony_door.can_open():
+		failures.append("ceremony doors should be sealed (no summons yet)")
+
+	# Talk to Coll: holding the conversation sets its flag.
+	var convo := DialogueRunner.from_id(coll.dialogue_id)
+	if convo == null:
+		failures.append("coll_intro dialogue failed to load")
+	else:
+		convo.start()
+		if not GameState.get_flag("met_coll"):
+			failures.append("talking to Coll did not set met_coll")
+
+	corridor.queue_free()
