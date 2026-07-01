@@ -1,0 +1,22 @@
+{
+	"id": "kassian_intro",
+	"start": "n_greet",
+	"nodes": {
+		"n_greet": {
+			"speaker": "Kassian",
+			"text": "Fresh blood. You all smell the same on the first day — soap and fear.",
+			"set_flags": { "met_kassian": true },
+			"choices": [
+				{ "text": "Do I know you?", "goto": "n_who" },
+				{ "text": "(Say nothing.)", "goto": "n_who" }
+			]
+		},
+		"n_who": {
+			"speaker": "Kassian",
+			"text": "You will. I'm the one they send when someone forgets their place. Try not to make me work, new blood.",
+			"choices": [
+				{ "text": "(Step back.)", "goto": "" }
+			]
+		}
+	}
+}

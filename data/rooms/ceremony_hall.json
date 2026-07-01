@@ -21,6 +21,7 @@
 	},
 	"entities": [
 		{ "type": "npc", "name": "The Officiant", "dialogue": "ceremony_ritual", "pos": [0, 0, -3], "yaw": 180 },
+		{ "type": "npc", "name": "Kassian", "dialogue": "kassian_intro", "pos": [-2.2, 0, -2.5], "yaw": 160 },
 		{ "type": "npc", "name": "Vesna", "dialogue": "vesna_intro", "pos": [-2.5, 0, 1.5], "yaw": 20 },
 		{ "type": "npc", "name": "Renn", "dialogue": "renn_intro", "pos": [2.5, 0, 1.5], "yaw": -20 },
 		{
